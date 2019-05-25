@@ -4,8 +4,8 @@
 import time
 from imutils.video import VideoStream
 import serial
-# from picamera.array import PiRGBArray
-# from picamera import PiCamera
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import numpy as np
 import cv2
 
@@ -17,38 +17,41 @@ def translate(value, oldMin, oldMax, newMin=-100, newMax=100):
     NewValue = (((value - oldMin) * newRange) / oldRange) + newMin
     return int(NewValue)
 
-usesPiCamera = False
+usesPiCamera = True
 
-# camera = PiCamera()
-# camera.framerate = 60
+camera = PiCamera()
+camera.framerate = 60
 cameraResolution = (640, 480)
 # camera.resolution = cameraResolution
 
 # # camera.awb_mode = 'tungsten'
-# camera.vflip = camera.hflip = True
-# camera.video_stabilization = True
-# rawCapture = PiRGBArray(camera, size=cameraResolution)
+camera.hflip = True
+camera.video_stabilization = True
+rawCapture = PiRGBArray(camera, size=cameraResolution)
 
 # initialize the video stream and allow the cammera sensor to warmup
-vs = VideoStream(usePiCamera=usesPiCamera, resolution=cameraResolution, framerate=60).start()
+#vs = VideoStream(usePiCamera=usesPiCamera, resolution=cameraResolution, framerate=60).start()
 time.sleep(2.0)
 
-colorLower = (0, 100, 50)
+#colorLower = (0, 100, 50)
+#colorUpper = (100, 255, 255)
+
+colorLower = (12, 96, 186)
 colorUpper = (100, 255, 255)
-colorTolerance = 3
+colorTolerance = 6
 paused = False
 roiSize = (16, 16) # roi size on the scaled down image (converted to HSV)
 
 
 # # initialize serial communication
-# ser = serial.Serial(port='/dev/ttyACM0', baudrate=57600, timeout=0.05)
+ser = serial.Serial(port='/dev/ttyACM0', baudrate=57600, timeout=0.05)
 
 while True:
 # for cameraFrame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     loopStart = time.time()
     if not paused:
 
-        frame = vs.read()
+##        frame = vs.read()
         # frame = cv2.flip(frame, flipCode=-1)
         
         height, width = frame.shape[0:2]
@@ -116,11 +119,13 @@ while True:
             pitch = scaled[1] # up-down
             yaw = scaled[0] # left-right
             cv2.line(upscaledColor, screenMiddle, biggestObjectMiddle, (0, 0, 255))
+            # packet = '<packet, {}, {}>'.format(yaw, pitch)
             packet = '<packet, {}, {}>'.format(yaw, pitch)
+            print(yaw)
             packetBytes = bytes(packet, 'utf-8')
             
-            # ser.write(packetBytes)
-            # print(ser.read_all())
+            ser.write(packetBytes)
+            print(ser.read_all())
             
 
         cv2.imshow("video", upscaledColor)

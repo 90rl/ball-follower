@@ -35,7 +35,7 @@ time.sleep(2.0)
 
 colorLower = (0, 100, 50)
 colorUpper = (100, 255, 255)
-colorTolerance = 3
+colorTolerance = 20
 paused = False
 roiSize = (16, 16) # roi size on the scaled down image (converted to HSV)
 
@@ -118,9 +118,15 @@ while True:
             cv2.line(upscaledColor, screenMiddle, biggestObjectMiddle, (0, 0, 255))
             packet = '<packet, {}, {}>'.format(yaw, pitch)
             packetBytes = bytes(packet, 'utf-8')
-            
+            print(yaw)
             ser.write(packetBytes)
-            print(ser.read_all())
+            x = ser.read_all()
+        else:
+            packet = '<packet, {}, {}>'.format(666, pitch)
+            packetBytes = bytes(packet, 'utf-8')
+            print(666)
+            ser.write(packetBytes)
+            x = ser.read_all()
             
 
         cv2.imshow("video", upscaledColor)
